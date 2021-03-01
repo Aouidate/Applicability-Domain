@@ -64,38 +64,41 @@ def williams_plot(X_train, X_test, Y_true_train, Y_true_test, y_pred_train, y_pr
         h_star = (float(b) * (p+1))/float(n)
     except ZeroDivisionError :
         pass
+    try :
+        train_points_in_ad = float(100 * np.sum(np.asarray(leverage_train < h_star) & np.asarray(s_residual_train<3))) / len(leverage_train)
+        test_points_in_ad = float(100 * np.sum(np.asarray(leverage_test < h_star) & np.asarray(s_residual_test<3))) / len(leverage_test)
 
-    train_points_in_ad = float(100 * np.sum(np.asarray(leverage_train < h_star) & np.asarray(s_residual_train<3))) / len(leverage_train)
-    test_points_in_ad = float(100 * np.sum(np.asarray(leverage_test < h_star) & np.asarray(s_residual_test<3))) / len(leverage_test)
-
-    test_lev_out = np.sum(np.asarray(leverage_test > h_star))
-
-    if toPrint:
-      st.write("Percetege of train points inside AD: {}%".format(train_points_in_ad))
-      st.write("Percetege of test points inside AD: {}%".format(test_points_in_ad))
-      st.write("h*: {}".format(h_star))
+        test_lev_out = np.sum(np.asarray(leverage_test > h_star))
 
 
-    if toPlot:
-
-      plt.plot(leverage_train.tolist(),s_residual_train.tolist(),'o', label='train')
-      plt.plot(leverage_test.tolist(),s_residual_test.tolist(),'^', label = 'test')
-      plt.axhline(y=3, color='r', linestyle='-')
-      plt.axhline(y=-3, color='r', linestyle='-')
-      plt.axvline(x=h_star, color='k', linestyle='--')
-      #plt.ylim(bottom=-6)
-      plt.title('williams plot')
-      plt.xlabel('Leverage')
-      plt.ylabel('Standardized Residuals')
-      plt.legend(loc='lower right', shadow=True)
-      fig = plt.figure('williams_plot_9edour.pdf')
-      plt.close()
-      #plt.show()
-      st.pyplot(plt)
-      st.markdown(imagedownload (plt,'williams_plot.pdf'), unsafe_allow_html=True)
+        if toPrint:
+            st.write("Percetege of train points inside AD: {}%".format(train_points_in_ad))
+            st.write("Percetege of test points inside AD: {}%".format(test_points_in_ad))
+            st.write("h*: {}".format(h_star))
 
 
-      return test_points_in_ad,train_points_in_ad,test_lev_out,h_star,leverage_train,leverage_test,s_residual_train,s_residual_test
+            if toPlot:
+
+                plt.plot(leverage_train.tolist(),s_residual_train.tolist(),'o', label='train')
+                plt.plot(leverage_test.tolist(),s_residual_test.tolist(),'^', label = 'test')
+                plt.axhline(y=3, color='r', linestyle='-')
+                plt.axhline(y=-3, color='r', linestyle='-')
+                plt.axvline(x=h_star, color='k', linestyle='--')
+                #plt.ylim(bottom=-6)
+                plt.title('williams plot')
+                plt.xlabel('Leverage')
+                plt.ylabel('Standardized Residuals')
+                plt.legend(loc='lower right', shadow=True)
+                fig = plt.figure('williams_plot_9edour.pdf')
+                plt.close()
+                #plt.show()
+                st.pyplot(plt)
+                st.markdown(imagedownload (plt,'williams_plot.pdf'), unsafe_allow_html=True)
+
+
+        return test_points_in_ad,train_points_in_ad,test_lev_out,h_star,leverage_train,leverage_test,s_residual_train,s_residual_test
+    except UnboundLocalError :
+        pass
 def imagedownload (df, filename):
     s = io.BytesIO()
     plt.savefig(s, format = 'pdf', bbox_inches = 'tight')
