@@ -6,17 +6,16 @@ import base64
 import io
 from io import BytesIO
 
-st.title('Applicability domain for 2D-QSAR models based on leverages')
+st.title('Applicability domain for 2D-QSAR models based on leverages *h*')
 
-st.markdown("""
-            This web application plots a williams plot for your QSAR model
-            * **Python libraries :** Holy shit I'm Adnane --' """ )
+st.markdown("""The AD is a theoretical region in the chemical space surrounding both the model descriptors and modeled response. In the construction of a QSAR model, the AD of molecules plays a deciding role in estimating the uncertainty in the prediction of a particular compound based on how similar it is to the compounds used to build the model. Therefore, the prediction of a modeled response using QSAR is applicable only if the compound being predicted falls within the AD of the model, as it is impractical to predict an entire universe of chemicals using a single QSAR model. Again, AD can be described as the physicochemical, structural, or biological space information based on which the training set of the model is developed, and the model is applicable to make predictions for new compounds within the specific domain.
+            * This web application will plot a williams plot for your QSAR model based on your molecular descriptors*""")
 
 st.set_option('deprecation.showfileUploaderEncoding', False)
 st.write("""
-    Applicability domain prediction for QSAR models
+    **Applicability domain prediction for QSAR models**
     """)
-st.sidebar.header('User Input Parameters')
+st.sidebar.header('*User Input Parameters*')
 
 def user_input_features():
     b = st.sidebar.slider('Coefficient of AD', 2.0,3.0,2.5)
@@ -32,39 +31,37 @@ def hat_matrix(X1):#, X2): #Hat Matrix
 
 
 def williams_plot(X_train, X_test, Y_true_train, Y_true_test, y_pred_train, y_pred_test, toPrint =True,toPlot=True):
-    # H_train= hat_matrix(np.concatenate([X_train, X_test], axis=0))#, numpy.concatenate([X_train, X_test], axis=0))
-    X_train=pd.DataFrame(X_train)
-    X_test=pd.DataFrame(X_test)
-    H_train2= hat_matrix(np.concatenate([X_train, X_test], axis=0))
-    H_train= hat_matrix (X_train)
-    H_test= hat_matrix (X_test)
+    try:
+        # H_train= hat_matrix(np.concatenate([X_train, X_test], axis=0))#, numpy.concatenate([X_train, X_test], axis=0))
+        X_train=pd.DataFrame(X_train)
+        X_test=pd.DataFrame(X_test)
+        H_train2= hat_matrix(np.concatenate([X_train, X_test], axis=0))
+        H_train= hat_matrix (X_train)
+        H_test= hat_matrix (X_test)
 
-    y_pred_test=pd.DataFrame(y_pred_test).to_numpy()
-    y_pred_train=pd.DataFrame(y_pred_train).to_numpy()
-    Y_true_train=pd.DataFrame(Y_true_train).to_numpy()
-    Y_true_test=pd.DataFrame(Y_true_test).to_numpy()
+        y_pred_test=pd.DataFrame(y_pred_test).to_numpy()
+        y_pred_train=pd.DataFrame(y_pred_train).to_numpy()
+        Y_true_train=pd.DataFrame(Y_true_train).to_numpy()
+        Y_true_test=pd.DataFrame(Y_true_test).to_numpy()
 
 
-    y_pred_test = y_pred_test.reshape(y_pred_test.shape[0],)
-    y_pred_train = y_pred_train.reshape(y_pred_train.shape[0],)
-    Y_true_train = Y_true_train.reshape(Y_true_train.shape[0],)
-    Y_true_test = Y_true_test.reshape(Y_true_test.shape[0],)
+        y_pred_test = y_pred_test.reshape(y_pred_test.shape[0],)
+        y_pred_train = y_pred_train.reshape(y_pred_train.shape[0],)
+        Y_true_train = Y_true_train.reshape(Y_true_train.shape[0],)
+        Y_true_test = Y_true_test.reshape(Y_true_test.shape[0],)
 
-    residual_train= np.abs(Y_true_train - y_pred_train)
-    residual_test= np.abs(Y_true_test - y_pred_test)
-    s_residual_train = ((residual_train) - np.mean(residual_train)) / np.std(residual_train)
-    s_residual_test = (residual_test - np.mean(residual_test))/ np.std(residual_test)
+        residual_train= np.abs(Y_true_train - y_pred_train)
+        residual_test= np.abs(Y_true_test - y_pred_test)
+        s_residual_train = ((residual_train) - np.mean(residual_train)) / np.std(residual_train)
+        s_residual_test = (residual_test - np.mean(residual_test))/ np.std(residual_test)
 
-    leverage= np.diag(H_train)
-    leverage_train = leverage[0:X_train.shape[0]]
-    leverage_test = leverage[0:X_test.shape[0]]
-    p = X_train.shape[1] #features
-    n = X_train.shape[0] #+ X_test.shape[0] #training compounds
-    try :
+        leverage= np.diag(H_train)
+        leverage_train = leverage[0:X_train.shape[0]]
+        leverage_test = leverage[0:X_test.shape[0]]
+        p = X_train.shape[1] #features
+        n = X_train.shape[0] #+ X_test.shape[0] #training compounds
         h_star = (float(b) * (p+1))/float(n)
-    except ZeroDivisionError :
-        pass
-    try :
+
         train_points_in_ad = float(100 * np.sum(np.asarray(leverage_train < h_star) & np.asarray(s_residual_train<3))) / len(leverage_train)
         test_points_in_ad = float(100 * np.sum(np.asarray(leverage_test < h_star) & np.asarray(s_residual_test<3))) / len(leverage_test)
 
@@ -97,7 +94,8 @@ def williams_plot(X_train, X_test, Y_true_train, Y_true_test, y_pred_train, y_pr
 
 
         return test_points_in_ad,train_points_in_ad,test_lev_out,h_star,leverage_train,leverage_test,s_residual_train,s_residual_test
-    except UnboundLocalError :
+    except (ZeroDivisionError, UnboundLocalError, ValueError) :
+        print('Oups you need to upload your files')
         pass
 def imagedownload (df, filename):
     s = io.BytesIO()
@@ -107,34 +105,34 @@ def imagedownload (df, filename):
     href = f'<a href="data:image/png;base64,{b64}" download={filename}>Download {filename} File</a>'
     return href
 
-uploaded_file1 = st.sidebar.file_uploader("""Upload your X train""")
+uploaded_file1 = st.sidebar.file_uploader("""Upload your training set""")
 if uploaded_file1 is not None:
   uploaded_file1 = pd.read_csv(uploaded_file1)
   #st.write(uploaded_file1.shape)
 
 #n = uploaded_file1.shape[1]
 
-uploaded_file2 = st.sidebar.file_uploader("""Upload your X test""")
+uploaded_file2 = st.sidebar.file_uploader("""Upload your test set""")
 if uploaded_file2 is not None:
   uploaded_file2 = pd.read_csv(uploaded_file2)
   #st.write(uploaded_file2.shape)
 
-uploaded_file3 = st.sidebar.file_uploader("""Upload your Y true train""")
+uploaded_file3 = st.sidebar.file_uploader("""Upload the experimental activity of the train set""")
 if uploaded_file3 is not None:
     uploaded_file3 = pd.read_csv(uploaded_file3)
     #st.write(uploaded_file3.shape)
 
-uploaded_file4 = st.sidebar.file_uploader("""Upload your Y true test""")
+uploaded_file4 = st.sidebar.file_uploader("""Upload the experimental activity of the test set""")
 if uploaded_file4 is not None:
      uploaded_file4 = pd.read_csv(uploaded_file4)
      #st.write(uploaded_file4.shape)
 
-uploaded_file5 = st.sidebar.file_uploader("""Upload your Y pred train""")
+uploaded_file5 = st.sidebar.file_uploader("""Upload thepredicted activity of the train set""")
 if uploaded_file5 is not None:
     uploaded_file5 = pd.read_csv(uploaded_file5)
     #st.write(uploaded_file5.shape)
 
-uploaded_file6 = st.sidebar.file_uploader("""Upload your Y pred test""")
+uploaded_file6 = st.sidebar.file_uploader("""Upload the predicted activity of the test set""")
 if uploaded_file6 is not None:
     uploaded_file6 = pd.read_csv(uploaded_file6)
     ##st.write(y_pred_test)
